@@ -1,0 +1,41 @@
+{
+    "name": "zanysoft/laravel-assets",
+    "keywords": ["assets", "minify", "laravel"],
+    "description": "A package for minify or combine css and javascript files",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lito",
+            "email": "lito@eordes.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*",
+        "mikey179/vfsStream": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "ZanySoft\\LaravelAssets\\": "src/ZanySoft/LaravelAssets/"
+        },
+        "classmap": [
+            "src/ZanySoft/LaravelAssets/Processors/"
+        ],
+        "files": [
+            "src/ZanySoft/LaravelAssets/Exceptions.php"
+        ]
+    },
+    "minimum-stability": "stable",
+    "extra": {
+        "laravel": {
+            "providers": [
+                "ZanySoft\\LaravelAssets\\AssetsServiceProvider"
+            ],
+            "aliases": {
+                "Assets": "ZanySoft\\LaravelAssets\\Facade"
+            }      
+        }
+    }  
+}
