@@ -13,15 +13,7 @@ With this package you can pack and minify your existing css and javascript files
 
 Begin by installing this package through Composer.
 
-```js
-{
-    "require": {
-        "zanysoft/laravel-assets": "master-dev"
-    }
-}
-```
-
-### Laravel installation
+Run ```composer require zanysoft/laravel-assets ```
 
 ```php
 
