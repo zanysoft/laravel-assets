@@ -1,7 +1,7 @@
 # Laravel >= 5 Assets
 [![Latest Stable Version](https://poser.pugx.org/zanysoft/laravel-assets/v/stable.svg)](https://packagist.org/packages/zanysoft/laravel-assets/)
 [![Total Downloads](https://img.shields.io/packagist/dt/zanysoft/laravel-assets.svg)](https://packagist.org/packages/zanysoft/laravel-assets)
-[![License](https://poser.pugx.org/laravel/assets/license.png)](https://packagist.org/packages/zanysoft/laravel-assets)
+[![License](https://poser.pugx.org/zanysoft/laravel-assets/license.svg)](https://packagist.org/packages/zanysoft/laravel-assets)
 
 Inspired by: https://github.com/ceesvanegmond/minify
 
