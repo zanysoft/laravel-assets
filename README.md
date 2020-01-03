@@ -1,8 +1,6 @@
 # Laravel >= 5 Assets
-
-[![Build Status](https://travis-ci.org/zanysoft/laravel-assets.svg?branch=master)](https://travis-ci.org/zanysoft/laravel-assets)
-[![Latest Stable Version](https://poser.pugx.org/laravel/assets/v/stable.png)](https://packagist.org/packages/zanysoft/laravel-assets)
-[![Total Downloads](https://poser.pugx.org/laravel/assets/downloads.png)](https://packagist.org/packages/zanysoft/laravel-assets)
+[![Latest Stable Version](https://poser.pugx.org/zanysoft/laravel-assets/v/stable.svg)](https://packagist.org/packages/zanysoft/laravel-assets/)
+[![Total Downloads](https://img.shields.io/packagist/dt/zanysoft/laravel-assets.svg)](https://packagist.org/packages/zanysoft/laravel-assets)
 [![License](https://poser.pugx.org/laravel/assets/license.png)](https://packagist.org/packages/zanysoft/laravel-assets)
 
 Inspired by: https://github.com/ceesvanegmond/minify
