@@ -3,6 +3,12 @@
 return array(
 
     /*
+    | You can check this option if you want to join or minify all files
+    */
+
+    'enable_cache' => true,
+
+    /*
     |--------------------------------------------------------------------------
     | App environments to not pack
     |--------------------------------------------------------------------------

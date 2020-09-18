@@ -14,7 +14,7 @@ class JS extends ProviderBase implements ProviderInterface
     public function pack($file, $public)
     {
         if (!Assets::isRemote($file) && !is_file($file)) {
-            return sprintf('/* File %s not exists */', $file);
+            return sprintf("/* File %s not exists */", $file);
         }
 
         $contents = file_get_contents($file);
@@ -24,9 +24,9 @@ class JS extends ProviderBase implements ProviderInterface
             $contents = JSMin::minify($contents);
         }
 
-        $contents = "/* Code merged from: " . str_replace([public_path(),'\\'], ['','/'], $file) . " */\r\n" . $contents;
+        //$contents = "/* Code merged from: " . str_replace([public_path(),'\\'], ['','/'], $file) . " */\r\n" . $contents;
 
-        return rtrim($contents, ";") . ";\r\n\r\n";
+        return rtrim($contents, ";") . ";";
     }
 
     /**

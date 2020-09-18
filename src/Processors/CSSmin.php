@@ -34,7 +34,7 @@ class CSSmin
     private $preservedTokens = array();
 
     // Output options
-    private $keepImportantComments = true;
+    private $keepImportantComments = false;
     private $keepSourceMapComment = false;
     private $linebreakPosition = 0;
 
@@ -70,8 +70,8 @@ class CSSmin
         $this->memoryLimit = 128 * 1048576; // 128MB in bytes
         $this->pcreBacktrackLimit = 1000 * 1000;
         $this->pcreRecursionLimit = 500 * 1000;
-        $this->hexToNamedColorsMap = Colors::getHexToNamedMap();
-        $this->namedToHexColorsMap = Colors::getNamedToHexMap();
+        $this->hexToNamedColorsMap = $this->getHexToNamedMap();
+        $this->namedToHexColorsMap = $this->getNamedToHexMap();
         $this->namedToHexColorsRegex = sprintf(
             '/([:,( ])(%s)( |,|\)|;|$)/Si',
             implode('|', array_keys($this->namedToHexColorsMap))

@@ -3,9 +3,7 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/zanysoft/laravel-assets.svg)](https://packagist.org/packages/zanysoft/laravel-assets)
 [![License](https://poser.pugx.org/zanysoft/laravel-assets/license.svg)](https://packagist.org/packages/zanysoft/laravel-assets)
 
-Inspired by: https://github.com/ceesvanegmond/minify
-
-With this package you can pack and minify your existing css and javascript files. This process can be a little tough, this package simplies this process and automates it.
+With this package you can combine and minify your existing css and javascript files automatically. 
 
 ## Installation
 
@@ -31,7 +29,7 @@ Run ```composer require zanysoft/laravel-assets ```
 Publish the config file:
 
 ```
-php artisan vendor:publish
+php artisan vendor:publish  --provider="ZanySoft\LaravelAssets\AssetsServiceProvider"
 ```
 
 Now you have a ```Assets``` facade available.

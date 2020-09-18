@@ -1,4 +1,5 @@
 <?php
+
 namespace ZanySoft\LaravelAssets;
 
 use DirectoryIterator;
@@ -10,6 +11,7 @@ use RegexIterator;
 use ZanySoft\LaravelAssets\Providers\CSS;
 use ZanySoft\LaravelAssets\Providers\IMG;
 use ZanySoft\LaravelAssets\Providers\JS;
+use Exception;
 
 class Assets
 {
@@ -17,27 +19,30 @@ class Assets
      * @var array
      */
     private $files = [];
-
     /**
      * @var array
      */
     private $paths = [];
-
     /**
      * @var string
      */
     private $name = '';
-
     /**
      * @var string
      */
     private $storage = '';
-
     /**
      * @var integer
      */
     private $newer = 0;
-
+    /**
+     * @var array
+     */
+    protected $scripts = [];
+    /**
+     * @var array
+     */
+    protected $styles = [];
     /**
      * @var array
      */
@@ -45,24 +50,21 @@ class Assets
         'current' => false,
         'previous' => false
     ];
-
     /**
      * @var array
      */
     private $config = [];
-
     /**
      * @var object
      */
     private $provider;
-
     /**
      * @var object;
      */
     private static $instance;
 
     /**
-     * @param  array $config
+     * @param array $config
      * @return object
      */
     public static function getInstance(array $config)
@@ -71,9 +73,9 @@ class Assets
     }
 
     /**
-     * @param  array $config
-     * @throws Exceptions\InvalidArgument
+     * @param array $config
      * @return this
+     * @throws Exception
      */
     public function __construct(array $config)
     {
@@ -81,10 +83,9 @@ class Assets
     }
 
     /**
-     * @param  array $config
-     * @throws Exceptions\InvalidArgument
-     * @throws Exceptions\DirNotExist
+     * @param array $config
      * @return this
+     * @throws Exception
      */
     public function setConfig(array $config)
     {
@@ -93,19 +94,19 @@ class Assets
         $config['public_path'] = $config['public_path'] ?? public_path();
 
         if (!isset($config['cache_folder'])) {
-            throw new Exceptions\InvalidArgument(sprintf('Missing option %s', 'cache_folder'));
+            throw new Exception(sprintf('Missing option %s', 'cache_folder'));
         }
 
         if (!isset($config['check_timestamps'])) {
-            throw new Exceptions\InvalidArgument(sprintf('Missing option %s', 'check_timestamps'));
+            throw new Exception(sprintf('Missing option %s', 'check_timestamps'));
         }
 
         if (!isset($config['css_minify'])) {
-            throw new Exceptions\InvalidArgument(sprintf('Missing option %s', 'css_minify'));
+            throw new Exception(sprintf('Missing option %s', 'css_minify'));
         }
 
         if (!isset($config['js_minify'])) {
-            throw new Exceptions\InvalidArgument(sprintf('Missing option %s', 'js_minify'));
+            throw new Exception(sprintf('Missing option %s', 'js_minify'));
         }
 
         if (!isset($config['environment']) || empty($config['environment'])) {
@@ -113,7 +114,7 @@ class Assets
         }
 
         if (!isset($config['asset']) || empty($config['asset'])) {
-            $config['asset'] = asset('');
+            $config['asset'] = asset('/');
         }
 
         $this->config = $config;
@@ -122,9 +123,9 @@ class Assets
     }
 
     /**
-     * @param  mixed $files
-     * @param  string $name
-     * @param  array $attributes
+     * @param mixed $files
+     * @param string $name
+     * @param array $attributes
      * @return this
      */
     public function js($files, $name, array $attributes = [])
@@ -134,15 +135,14 @@ class Assets
             'minify' => $this->config['js_minify'],
             'attributes' => $attributes
         ]);
-
         return $this->load('js', $files, $name);
     }
 
     /**
-     * @param  mixed $dir
-     * @param  string $name
-     * @param  boolean $recursive
-     * @param  array $attributes
+     * @param mixed $dir
+     * @param string $name
+     * @param boolean $recursive
+     * @param array $attributes
      * @return this
      */
     public function jsDir($dir, $name, $recursive = false, array $attributes = [])
@@ -157,9 +157,9 @@ class Assets
     }
 
     /**
-     * @param  mixed $files
-     * @param  string $name
-     * @param  array $attributes
+     * @param mixed $files
+     * @param string $name
+     * @param array $attributes
      * @return this
      */
     public function css($files, $name, array $attributes = [])
@@ -174,10 +174,10 @@ class Assets
     }
 
     /**
-     * @param  mixed $dir
-     * @param  string $name
-     * @param  boolean $recursive
-     * @param  array $attributes
+     * @param mixed $dir
+     * @param string $name
+     * @param boolean $recursive
+     * @param array $attributes
      * @return this
      */
     public function cssDir($dir, $name, $recursive = false, array $attributes = [])
@@ -192,17 +192,17 @@ class Assets
     }
 
     /**
-     * @param  string $file
-     * @param  string $transform
-     * @param  string $new
-     * @param  array $attributes
-     * @throws Exceptions\InvalidArgument
+     * @param string $file
+     * @param string $transform
+     * @param string $new
+     * @param array $attributes
      * @return this
+     * @throws Exception
      */
     public function img($file, $transform = null, $new = '', array $attributes = [])
     {
         if (!is_string($file)) {
-            throw new Exceptions\InvalidArgument('img function only supports strings');
+            throw new Exception('img function only supports strings');
         }
 
         $this->provider = new IMG([
@@ -244,11 +244,11 @@ class Assets
     }
 
     /**
-     * @param  string $ext
-     * @param  string $dir
-     * @param  boolean $recursive
-     * @throws Exceptions\DirNotExist
+     * @param string $ext
+     * @param string $dir
+     * @param boolean $recursive
      * @return array
+     * @throws Exception
      */
     private function scanDir($ext, $dir, $recursive = false)
     {
@@ -264,7 +264,7 @@ class Assets
         $dir = $this->path('public', $dir);
 
         if (!is_dir($dir)) {
-            throw new Exceptions\DirNotExist(sprintf('Folder %s not exists', $dir));
+            throw new Exception(sprintf('Folder %s not exists', $dir));
         }
 
         if ($recursive) {
@@ -285,19 +285,23 @@ class Assets
     }
 
     /**
-     * @param  string $type
-     * @param  mixed $file
-     * @param  string $name
+     * @param string $type
+     * @param $files
+     * @param string $name
      * @return this
+     * @throws Exception
      */
     public function load($type, $files, $name)
     {
         $files = is_array($files) ? $files : [$files];
         foreach ($files as $k => $v) {
-            if (Str::startsWith($v, asset(''))) {
-                $files[$k] = str_replace(asset(''), '', $v);
+            if($v) {
+                if (Str::startsWith($v, asset(''))) {
+                    $files[$k] = str_replace(asset(''), '', $v);
+                }
             }
         }
+
         $this->files = $files;
 
         if (strpos($name, '/') !== 0) {
@@ -312,18 +316,22 @@ class Assets
             $this->name = md5(implode('', $this->files)) . '.' . $type;
         }
 
-        if ($this->files && !$this->isLocal() && ($this->config['check_timestamps'] === true)) {
-            $this->newer = max(array_map(function ($file) {
+        if ($this->isEnable() && $this->files && !$this->isLocal() && ($this->config['check_timestamps'] === true)) {
+            $times = array_map(function ($file) {
+                if (Str::contains($file, '?')) {
+                    $file = Str::before($file, '?');
+                }
                 if (!static::isRemote($file) && is_file($file = $this->path('public', $file))) {
                     return filemtime($file);
                 }
-            }, $this->files));
+            }, $this->files);
+
+            $this->newer = max($times);
 
             if (empty($this->newer)) {
-                $this->newer = md5(implode($this->files));
+                $this->newer = time();
             }
-
-            $this->name = $this->newer . '-' . $this->name;
+            //$this->name = $this->newer . '-' . $this->name;
         }
 
         $this->file = $this->path('public', $this->storage . $this->name);
@@ -332,10 +340,10 @@ class Assets
     }
 
     /**
-     * @param  string $name
-     * @param  string $location
-     * @throws Exceptions\InvalidArgument
+     * @param string $name
+     * @param string $location
      * @return string
+     * @throws Exception
      */
     public function path($name, $location = '')
     {
@@ -348,15 +356,15 @@ class Assets
         } elseif ($name === 'public') {
             $path = $this->config['public_path'];
         } else {
-            throw new Exceptions\InvalidArgument(sprintf('This path does not exists %s', $name));
+            throw new Exception(sprintf('This path does not exists %s', $name));
         }
 
         return preg_replace('#(^|[^:])//+#', '$1/', $path . '/' . $location);
     }
 
     /**
-     * @throws Exceptions\FileNotWritable
      * @return this
+     * @throws Exception
      */
     private function process()
     {
@@ -367,10 +375,13 @@ class Assets
         $this->checkDir(dirname($this->file));
 
         if (!($fp = @fopen($this->file, 'c'))) {
-            throw new Exceptions\FileNotWritable(sprintf('File %s can not be created', $this->file));
+            throw new Exception(sprintf('File %s can not be created', $this->file));
         }
 
         foreach ($this->files as $file) {
+            if (Str::contains($file, '?')) {
+                $file = Str::before($file, '?');
+            }
             fwrite($fp, $this->provider->pack($this->path('public', $file), $file));
         }
 
@@ -384,23 +395,24 @@ class Assets
      */
     private function useCache()
     {
-        if ($this->isLocal()) {
-            return true;
-        }
-        if (!is_file($this->file)) {
-            return false;
-        }
-        if ($this->config['check_timestamps'] === false) {
+        if ($this->isLocal() || !$this->isEnable()) {
             return true;
         }
 
+        if (!is_file($this->file)) {
+            return false;
+        }
+
+        if ($this->config['check_timestamps'] === false) {
+            return true;
+        }
         return ($this->newer < filemtime($this->file));
     }
 
     /**
-     * @param  string $dir
-     * @throws Exceptions\DirNotWritable
+     * @param string $dir
      * @return boolean
+     * @throws Exception
      */
     private function checkDir($dir)
     {
@@ -409,8 +421,32 @@ class Assets
         }
 
         if (!@mkdir($dir, 0755, true)) {
-            throw new Exceptions\DirNotWritable(sprintf('Folder %s can not be created', $dir));
+            throw new Exception(sprintf('Folder %s can not be created', $dir));
         }
+    }
+
+    /**
+     * Add scripts to current module.
+     *
+     * @param array $assets
+     * @return $this
+     */
+    public function addScripts($assets)
+    {
+        $this->scripts = array_merge($this->scripts, (array)$assets);
+        return $this;
+    }
+
+    /**
+     * Add Css to current module.
+     *
+     * @param string[] $assets
+     * @return $this
+     */
+    public function addStyles($assets)
+    {
+        $this->styles = array_merge($this->styles, (array)$assets);
+        return $this;
     }
 
     /**
@@ -418,10 +454,17 @@ class Assets
      */
     public function render()
     {
-        if ($this->isLocal()) {
+        if ($this->isLocal() || !$this->isEnable()) {
             $list = $this->files;
         } else {
             $list = $this->storage . $this->name;
+            if ($this->config['check_timestamps']) {
+                if ($this->newer) {
+                    $list .= '?v=' . $this->newer;
+                } elseif ($this->config['check_timestamps']) {
+                    $list .= '?=' . time();
+                }
+            }
         }
 
         $this->files = [];
@@ -445,6 +488,16 @@ class Assets
         }
 
         return ($this->force['current'] === false) && in_array($this->config['environment'], $ignore_environments, true);
+    }
+
+    /**
+     * @return boolean
+     */
+    protected function isEnable()
+    {
+        $enable_package = $this->config['enable_cache'] ?? false;
+
+        return ($this->force['current'] === false) && $enable_package;
     }
 
     public static function isRemote($file)

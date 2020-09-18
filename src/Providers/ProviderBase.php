@@ -42,7 +42,11 @@ abstract class ProviderBase
         $html = '';
 
         foreach ($attributes as $key => $value) {
-            $html .= $key.'="'.htmlspecialchars($value).'" ';
+            if($value===true || $value=='' || $key==$value){
+                $html .= $key . ' ';
+            }else {
+                $html .= $key . '="' . htmlspecialchars($value) . '" ';
+            }
         }
 
         return trim($html);
