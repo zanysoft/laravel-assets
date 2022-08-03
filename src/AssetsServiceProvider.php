@@ -31,7 +31,7 @@ class AssetsServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton('assets', function ($app) {
+        $this->app->singleton('zanysoft.assets', function ($app) {
             return new Assets($this->config());
         });
     }

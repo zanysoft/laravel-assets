@@ -19,17 +19,13 @@
     "intervention/image": "^2.1"
   },
   "autoload": {
-    "psr-4": {
-      "ZanySoft\\LaravelAssets\\": "src/ZanySoft/LaravelAssets/"
-    },
-    "classmap": [
-      "src/ZanySoft/LaravelAssets/Processors/"
-    ],
     "files": [
-      "src/ZanySoft/LaravelAssets/Exceptions.php"
-    ]
+      "src/Helpers/helpers.php"
+    ],
+    "psr-4": {
+      "ZanySoft\\LaravelAssets\\": "src/"
+    }
   },
-  "minimum-stability": "stable",
   "extra": {
     "laravel": {
       "providers": [
@@ -39,5 +35,6 @@
         "Assets": "ZanySoft\\LaravelAssets\\Facade"
       }
     }
-  }
+  },
+  "minimum-stability": "stable"
 }

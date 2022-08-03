@@ -12,6 +12,6 @@ class Facade extends LFacade
      */
     protected static function getFacadeAccessor()
     {
-        return 'assets';
+        return 'zanysoft.assets';
     }
 }
