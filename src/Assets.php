@@ -30,6 +30,10 @@ class Assets
     /**
      * @var string
      */
+    private $environment = '';
+    /**
+     * @var string
+     */
     private $storage = '';
     /**
      * @var integer
@@ -43,13 +47,6 @@ class Assets
      * @var array
      */
     protected $styles = [];
-    /**
-     * @var array
-     */
-    private $force = [
-        'current' => false,
-        'previous' => false
-    ];
     /**
      * @var array
      */
@@ -79,7 +76,9 @@ class Assets
      */
     public function __construct(array $config)
     {
-        return $this->setConfig($config);
+        $this->environment = app()->environment();
+
+        $this->setConfig($config);
     }
 
     /**
@@ -119,6 +118,7 @@ class Assets
 
         $this->config = $config;
 
+		$this->config['enabled'] = $this->isEnable();
         return $this;
     }
 
@@ -127,13 +127,15 @@ class Assets
      * @param string $name
      * @param array $attributes
      * @return this
+	 * @throws \Exception
      */
     public function js($files, $name, array $attributes = [])
     {
         $this->provider = new Js([
             'asset' => $this->config['asset'],
             'minify' => $this->config['js_minify'],
-            'attributes' => $attributes
+            'attributes' => $attributes,
+            'config' => $this->config
         ]);
         return $this->load('js', $files, $name);
     }
@@ -150,7 +152,8 @@ class Assets
         $this->provider = new JS([
             'asset' => $this->config['asset'],
             'minify' => $this->config['js_minify'],
-            'attributes' => $attributes
+            'attributes' => $attributes,
+            'config' => $this->config
         ]);
 
         return $this->load('js', $this->scanDir('js', $dir, $recursive), $name);
@@ -167,7 +170,8 @@ class Assets
         $this->provider = new CSS([
             'asset' => $this->config['asset'],
             'minify' => $this->config['css_minify'],
-            'attributes' => $attributes
+            'attributes' => $attributes,
+            'config' => $this->config
         ]);
 
         return $this->load('css', $files, $name);
@@ -185,7 +189,8 @@ class Assets
         $this->provider = new CSS([
             'asset' => $this->config['asset'],
             'minify' => $this->config['css_minify'],
-            'attributes' => $attributes
+            'attributes' => $attributes,
+            'config' => $this->config
         ]);
 
         return $this->load('css', $this->scanDir('css', $dir, $recursive), $name);
@@ -199,7 +204,7 @@ class Assets
      * @return this
      * @throws Exception
      */
-    public function img($file, $transform = null, $new = '', array $attributes = [])
+    public function img($file, string $transform = null, string $new_name = '', array $attributes = [])
     {
         if (!is_string($file)) {
             throw new Exception('img function only supports strings');
@@ -210,7 +215,8 @@ class Assets
             'fake' => $this->config['images_fake'],
             'transform' => $transform,
             'quality' => (isset($this->config['quality']) ? $this->config['quality'] : null),
-            'attributes' => $attributes
+            'attributes' => $attributes,
+            'config' => $this->config
         ]);
 
         if (!$this->provider->check($this->path('public', $file))) {
@@ -220,16 +226,27 @@ class Assets
         }
 
         $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-        $name = $new ?: $this->getImgName($file, $transform);
 
-        $this->force['previous'] = $this->force['current'];
-        $this->force['current'] = true;
+        $new_name = trim(str_replace('\\', '/', $new_name), '/.');
+        if ($new_name && strpos(basename($new_name), '.')) {
+            $ext = trim(substr(basename($new_name), strrpos(basename($new_name), '.')), '.') ?: $ext;
+        }
+
+        $name = $this->getImgName($file, $new_name, $transform);
 
         return $this->load($ext, $file, $name);
     }
 
-    private function getImgName($file, $transform)
+    /**
+     * @param $file
+     * @param $transform
+     * @return string
+     */
+    private function getImgName($file, $new_name, $transform)
     {
+        $name = preg_replace('/[^a-z0-9\-\_\.]/', '', strtolower(basename($file)));
+        $type = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        if ($transform) {
         if (preg_match('/^[^0-9]+([0-9]+),([0-9]+).*$/', $transform)) {
             $transform = preg_replace('/^[^0-9]+([0-9]+),([0-9]+).*$/', '$1x$2', $transform);;
         } elseif (preg_match('/^[^,]+,([0-9]+).*$/', $transform)) {
@@ -237,10 +254,21 @@ class Assets
         } else {
             $transform = preg_replace('/^([^,]+).*$/', '$1', $transform);
         }
+        }
 
-        $name = preg_replace('/[^a-z0-9\-\_\.]/', '', strtolower(basename($file)));
+        if ($new_name) {
+            $new_name = str_replace('\\', '/', strtolower(trim($new_name, '/')));
+            $has_slash = strpos($new_name, '/');
+            $has_dot = strpos(basename($new_name), '.');
 
-        return 'images/' . substr(md5($file . $transform), 0, 3) . '/' . $transform . '_' . $name;
+            if (!$has_slash && !$has_dot) {
+                $new_name = 'images/' . substr(md5($file . $transform), 0, 3) . '/' . $new_name . '.' . $type;
+            } elseif (!$has_dot) {
+                $new_name = $new_name . '/' . ($transform ? $transform . '_' : '') . $name;
+            }
+        }
+
+        return $new_name ? $new_name : 'images/' . substr(md5($file . $transform), 0, 3) . '/' . ($transform ? $transform . '_' : '') . $name;
     }
 
     /**
@@ -316,7 +344,7 @@ class Assets
             $this->name = md5(implode('', $this->files)) . '.' . $type;
         }
 
-        if ($this->isEnable() && $this->files && !$this->isLocal() && ($this->config['check_timestamps'] === true)) {
+        if ($this->isEnable() && $this->files && ($this->config['check_timestamps'] === true)) {
             $times = array_map(function ($file) {
                 if (Str::contains($file, '?')) {
                     $file = Str::before($file, '?');
@@ -374,6 +402,10 @@ class Assets
 
         $this->checkDir(dirname($this->file));
 
+        if (is_dir($this->file)) {
+            throw new Exception(sprintf('File %s can not be created because folder exist with same name.', $this->file));
+        }
+
         if (!($fp = @fopen($this->file, 'c'))) {
             throw new Exception(sprintf('File %s can not be created', $this->file));
         }
@@ -395,7 +427,7 @@ class Assets
      */
     private function useCache()
     {
-        if ($this->isLocal() || !$this->isEnable()) {
+        if (!$this->isEnable()) {
             return true;
         }
 
@@ -454,7 +486,7 @@ class Assets
      */
     public function render()
     {
-        if ($this->isLocal() || !$this->isEnable()) {
+        if (!$this->isEnable()) {
             $list = $this->files;
         } else {
             $list = $this->storage . $this->name;
@@ -471,9 +503,52 @@ class Assets
         $this->storage = '';
         $this->name = '';
 
-        $this->force['current'] = $this->force['previous'];
-
         return $this->provider->tag($list);
+    }
+
+    /**
+     * @return string
+     */
+    public function links()
+    {
+        if (!$this->isEnable()) {
+            $list = $this->files;
+        } else {
+            $list = $this->storage . $this->name;
+            if ($this->config['check_timestamps']) {
+                if ($this->newer) {
+                    $list .= '?v=' . $this->newer;
+                } elseif ($this->config['check_timestamps']) {
+                    $list .= '?=' . time();
+                }
+            }
+        }
+
+        $this->files = [];
+        $this->storage = '';
+        $this->name = '';
+
+        return $this->provider->links($list);
+    }
+
+
+    /**
+     * @return boolean
+     */
+    protected function isEnable()
+    {
+        $is_enable = $this->config['enable_cache'] ?? false;
+
+        $ignore_environments = $this->config['ignore_environments'] ?? [];
+
+        if (!is_array($ignore_environments)) {
+            $ignore_environments = array_map('trim', explode(',', $ignore_environments));
+        }
+
+        $is_local = in_array($this->config['environment'], $ignore_environments, true);
+
+        return $is_enable && !$is_local;
+
     }
 
     /**
@@ -488,16 +563,6 @@ class Assets
         }
 
         return ($this->force['current'] === false) && in_array($this->config['environment'], $ignore_environments, true);
-    }
-
-    /**
-     * @return boolean
-     */
-    protected function isEnable()
-    {
-        $enable_package = $this->config['enable_cache'] ?? false;
-
-        return ($this->force['current'] === false) && $enable_package;
     }
 
     public static function isRemote($file)

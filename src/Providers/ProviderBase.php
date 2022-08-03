@@ -1,4 +1,5 @@
 <?php
+
 namespace ZanySoft\LaravelAssets\Providers;
 
 abstract class ProviderBase
@@ -6,7 +7,7 @@ abstract class ProviderBase
     protected $settings;
 
     /**
-     * @param  array  $settings
+     * @param array $settings
      * @return string
      */
     public function __construct(array $settings)
@@ -19,7 +20,7 @@ abstract class ProviderBase
     }
 
     /**
-     * @param  array  $files
+     * @param array $files
      * @return string
      */
     public function tags($files)
@@ -27,14 +28,31 @@ abstract class ProviderBase
         $html = '';
 
         foreach ($files as $file) {
-           $html .= $this->tag($file);
+            $html .= $this->tag($file);
         }
 
         return $html;
     }
 
     /**
-     * @param  array  $attributes
+     * @param array $files
+     * @return array
+     */
+    public function links($files)
+    {
+        $links = [];
+        if (is_array($files)) {
+            foreach ($files as $file) {
+                $links[] = $this->path($this->settings['asset'] . $file);
+            }
+        } else {
+            $links[] = $this->path($this->settings['asset'] . $files);
+        }
+        return $links;
+    }
+
+    /**
+     * @param array $attributes
      * @return string
      */
     protected function attributes(array $attributes)
@@ -42,9 +60,9 @@ abstract class ProviderBase
         $html = '';
 
         foreach ($attributes as $key => $value) {
-            if($value===true || $value=='' || $key==$value){
+            if ($value === true || $value == '' || $key == $value) {
                 $html .= $key . ' ';
-            }else {
+            } else {
                 $html .= $key . '="' . htmlspecialchars($value) . '" ';
             }
         }
@@ -53,7 +71,7 @@ abstract class ProviderBase
     }
 
     /**
-     * @param  string $path
+     * @param string $path
      * @return string
      */
     protected function path($path)

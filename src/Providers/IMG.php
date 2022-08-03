@@ -1,12 +1,13 @@
 <?php
+
 namespace ZanySoft\LaravelAssets\Providers;
 
-use ZanySoft\LaravelAssets\Images\Image;
+use Intervention\Image\Facades\Image;
 
 class IMG extends ProviderBase implements ProviderInterface
 {
     /**
-     * @param  string $file
+     * @param string $file
      * @return boolean
      */
     public function isImage($file)
@@ -18,7 +19,7 @@ class IMG extends ProviderBase implements ProviderInterface
     }
 
     /**
-     * @param  string $file
+     * @param string $file
      * @return string
      */
     public function check($file)
@@ -39,8 +40,8 @@ class IMG extends ProviderBase implements ProviderInterface
     }
 
     /**
-     * @param  string $file
-     * @param  string $public
+     * @param string $file
+     * @param string $public
      * @return string
      */
     public function pack($file, $public)
@@ -49,21 +50,23 @@ class IMG extends ProviderBase implements ProviderInterface
             return;
         }
 
-        $image = Image::fromFile($file);
+        $image = Image::make($file);
 
-        if ($this->settings['quality'] && !strstr($this->settings['transform'], 'quality,')) {
-            $image->quality($this->settings['quality']);
+        $quality = $this->settings['quality'] ?? null;
+
+        $transform = $this->settings['transform'] ?? null;
+        if (!empty($transform)) {
+            list($width, $height) = array_pad(explode('x', $transform), 2, null);
+            if ($width || $height) {
+                $image->resize($width, $height);
+            }
         }
 
-        if (isset($this->settings['transform']) && !empty($this->settings['transform'])) {
-            return $image->transform($this->settings['transform'])->getString();
-        } else {
-            return $image->getString();
-        }
+        return $image->stream($image->extension, $quality ? $quality : 60);
     }
 
     /**
-     * @param  string $file
+     * @param string $file
      * @return string
      */
     public function tag($file)

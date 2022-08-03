@@ -25,12 +25,11 @@ class CSS extends ProviderBase implements ProviderInterface
             $contents = (new CSSmin())->run($contents);
         }
 
-        //$contents = preg_replace('/(url\([\'"]?)/', '$1' . $this->settings['asset'] . dirname($public) . '/', $contents);
         $contents = $this->replaceUrl($contents, $this->settings['asset'] . dirname($public) . '/');
 
-        //$contents = "/* Code merged from: " . str_replace([public_path(), '\\'], ['', '/'], $file) . " */\r\n" . $contents;
+        $contents = preg_replace('/\n\r+/', "", $contents);
 
-        return $contents . "\r\n";
+        return trim($contents) . ' ';
     }
 
     protected function replaceUrl($content, $domain)
@@ -56,10 +55,34 @@ class CSS extends ProviderBase implements ProviderInterface
             return $this->tags($file);
         }
 
-        $attributes = $this->settings['attributes'];
-        $attributes['href'] = $this->path($this->settings['asset'] . $file);
-        $attributes['rel'] = 'stylesheet';
+        $enabled = $this->settings['config']['enabled'] ?? false;
 
-        return '<link ' . $this->attributes($attributes) . ' />' . PHP_EOL;
+        $attributes = $this->settings['attributes'];
+
+        $preload = false;
+        if (isset($attributes['preload'])) {
+            $preload = $attributes['preload'];
+            unset($attributes['preload']);
+        }
+
+        $rel = 'stylesheet';
+        if (isset($attributes['rel']) && $attributes['rel']) {
+            $rel = $attributes['rel'];
+        }
+
+        $href = $this->path($this->settings['asset'] . $file);
+
+        $attributes['href'] = $href;
+        $attributes['rel'] = $rel;
+        if ($rel == 'preload') {
+            $attributes['as '] = 'style';
+        }
+
+        $html = '<link ' . $this->attributes($attributes) . ' />' . PHP_EOL;
+        if ($preload && $enabled && $rel != 'preload') {
+            $html = '<link href="' . $href . '" rel="preload" as="style" />' . PHP_EOL . $html;
+        }
+
+        return $html;
     }
 }

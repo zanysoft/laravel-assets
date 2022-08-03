@@ -1,37 +1,43 @@
 {
-    "name": "zanysoft/laravel-assets",
-    "keywords": ["assets", "minify", "laravel"],
-    "description": "A package for minify or combine css and javascript files",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Mubashar Ahmad",
-            "email": "info@zanysoft.com"
-        }
+  "name": "zanysoft/laravel-assets",
+  "keywords": [
+    "assets",
+    "minify",
+    "laravel"
+  ],
+  "description": "A package for minify or combine css and javascript files",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Mubashar Ahmad",
+      "email": "info@zanysoft.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.4",
+    "illuminate/support": "^6.0|^7.0|^8.0|^9.0",
+    "intervention/image": "^2.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "ZanySoft\\LaravelAssets\\": "src/ZanySoft/LaravelAssets/"
+    },
+    "classmap": [
+      "src/ZanySoft/LaravelAssets/Processors/"
     ],
-    "require": {
-        "php": ">=5.5"
-    },
-    "autoload": {
-        "psr-4": {
-            "ZanySoft\\LaravelAssets\\": "src/ZanySoft/LaravelAssets/"
-        },
-        "classmap": [
-            "src/ZanySoft/LaravelAssets/Processors/"
-        ],
-        "files": [
-            "src/ZanySoft/LaravelAssets/Exceptions.php"
-        ]
-    },
-    "minimum-stability": "stable",
-    "extra": {
-        "laravel": {
-            "providers": [
-                "ZanySoft\\LaravelAssets\\AssetsServiceProvider"
-            ],
-            "aliases": {
-                "Assets": "ZanySoft\\LaravelAssets\\Facade"
-            }      
-        }
-    }  
+    "files": [
+      "src/ZanySoft/LaravelAssets/Exceptions.php"
+    ]
+  },
+  "minimum-stability": "stable",
+  "extra": {
+    "laravel": {
+      "providers": [
+        "ZanySoft\\LaravelAssets\\AssetsServiceProvider"
+      ],
+      "aliases": {
+        "Assets": "ZanySoft\\LaravelAssets\\Facade"
+      }
+    }
+  }
 }

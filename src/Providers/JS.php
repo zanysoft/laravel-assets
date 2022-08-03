@@ -1,4 +1,5 @@
 <?php
+
 namespace ZanySoft\LaravelAssets\Providers;
 
 use ZanySoft\LaravelAssets\Assets;
@@ -7,8 +8,8 @@ use ZanySoft\LaravelAssets\Processors\JSMin;
 class JS extends ProviderBase implements ProviderInterface
 {
     /**
-     * @param  string $file
-     * @param  string $public
+     * @param string $file
+     * @param string $public
      * @return string
      */
     public function pack($file, $public)
@@ -24,13 +25,29 @@ class JS extends ProviderBase implements ProviderInterface
             $contents = JSMin::minify($contents);
         }
 
-        //$contents = "/* Code merged from: " . str_replace([public_path(),'\\'], ['','/'], $file) . " */\r\n" . $contents;
+        $contents = $this->removeNewlines($contents);
+        $contents = preg_replace('/(?<!\\\\)\/\*(.*?)\*(?<!\\\\)\//Ss', '', $contents);
 
-        return rtrim($contents, ";") . ";";
+        return rtrim($contents, ";") . ";\n";
     }
 
     /**
-     * @param  mixed $file
+     * @param $buffer
+     * @return string|string[]|null
+     */
+    public function removeNewlines($buffer)
+    {
+        # remove extra or unneccessary new line from javascript
+        $buffer = preg_replace('/([;])\s+/', '$1', $buffer);
+        $buffer = preg_replace('/([}])\s+(else)/', '$1else', $buffer);
+        $buffer = preg_replace('/([}])\s+(var)/', '$1;var', $buffer);
+        $buffer = preg_replace('/([{};])\s+(\$)/', '$1\$', $buffer);
+
+        return $buffer;
+    }
+
+    /**
+     * @param mixed $file
      * @return string
      */
     public function tag($file)
@@ -39,9 +56,31 @@ class JS extends ProviderBase implements ProviderInterface
             return $this->tags($file);
         }
 
+        $enabled = $this->settings['config']['enabled'] ?? false;
         $attributes = $this->settings['attributes'];
-        $attributes['src'] = $this->path($this->settings['asset'] . $file);
 
-        return '<script ' . $this->attributes($attributes) . '></script>' . PHP_EOL;
+        $preload = false;
+        if (isset($attributes['preload'])) {
+            $preload = $attributes['preload'];
+            unset($attributes['preload']);
+        }
+
+        $rel = false;
+        if (isset($attributes['rel']) && $attributes['rel']) {
+            $rel = $attributes['rel'];
+            if ($rel == 'preload') {
+                $attributes['as '] = 'script';
+            }
+        }
+
+        $src = $this->path($this->settings['asset'] . $file);
+
+        $html = '<script src="' . $src . '" ' . $this->attributes($attributes) . '></script>' . PHP_EOL;
+
+        if ($preload && $enabled && $rel != 'preload') {
+            $html = '<link href="' . $src . '" rel="preload" as="script"></script>' . PHP_EOL . $html;
+        }
+
+        return $html;
     }
 }
